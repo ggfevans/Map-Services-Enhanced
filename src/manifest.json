@@ -11,6 +11,9 @@
     "128": "icons/icon128.png"
   },
   "default_locale": "en",
+  "background": {
+    "service_worker": "src/bg/background.js"
+  },
   "options_page": "src/options/options.html",
   "action": {
     "default_icon": "icons/icon19.png",
@@ -61,6 +64,7 @@
   ],
   "permissions": [
     "activeTab",
+    "declarativeContent",
     "storage"
   ],
   "web_accessible_resources": [

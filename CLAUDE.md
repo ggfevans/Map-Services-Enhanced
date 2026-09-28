@@ -34,7 +34,7 @@ Each script is wrapped in a bare `{ ... }` block and defines its own copies of h
 
 **Page action popup** (`src/src/page_action/`): `search.js` searches the REST endpoint tree of the active tab, and `url_shortener.js` strips unneeded query parameters. Both use `chrome.tabs` (the permissions are limited to `activeTab` and `storage`).
 
-There is no background service worker. Nothing needs one, because the content scripts and the popup call `chrome.storage` and `chrome.tabs` directly. `mapImages.js` and `queryTest.js` start from a `window` `load` listener (MV2 used a `sendMessage` handshake).
+**Background** (`src/src/bg/background.js`) is a service worker with one job. On install/update it disables the toolbar action globally, then registers a `declarativeContent` rule that enables the action on URLs whose path matches `/rest/services`. Keep that rule's regex in sync with the content-script `matches` in the manifest. `mapImages.js` and `queryTest.js` start from a `window` `load` listener (MV2 used a `sendMessage` handshake).
 
 **Settings** live in `chrome.storage.sync`, and three places must stay in sync with each other:
 1. `src/src/options/options.html` + `options.js`: the Chrome options page, with hard-coded fields and defaults
