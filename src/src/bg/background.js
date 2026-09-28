@@ -1,21 +1,27 @@
 {
-  // Matches the content script patterns in manifest.json: */rest/services and */rest/services/*
-  const REST_SERVICES_PATH = "/rest/services(/.*)?$";
+  // Matches the content script patterns in manifest.json: *://*/*/rest/services and *://*/*/rest/services/*
+  const REST_SERVICES_PAGE = {
+    schemes: ["http", "https"],
+    pathMatches: "/rest/services(/.*)?$"
+  };
 
-  // The toolbar button is disabled everywhere except ArcGIS REST pages.
-  // Rules registered with declarativeContent persist, so they only need setting on install/update.
+  // The toolbar button is disabled everywhere except ArcGIS REST pages, where the rule below shows it.
+  const disableByDefault = () => chrome.action.disable();
+
+  // declarativeContent rules persist across restarts, so they only need registering on install/update.
   chrome.runtime.onInstalled.addListener(() => {
-    chrome.action.disable();
+    disableByDefault();
 
     chrome.declarativeContent.onPageChanged.removeRules(undefined, () => {
       chrome.declarativeContent.onPageChanged.addRules([{
         conditions: [
-          new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { pathMatches: REST_SERVICES_PATH }
-          })
+          new chrome.declarativeContent.PageStateMatcher({ pageUrl: REST_SERVICES_PAGE })
         ],
         actions: [new chrome.declarativeContent.ShowAction()]
       }]);
     });
   });
+
+  // Re-apply the disabled default on browser start; it is cheap and idempotent.
+  chrome.runtime.onStartup.addListener(disableByDefault);
 }
