@@ -1,5 +1,5 @@
 // Packages src/ into build/map-services-enhanced-<version>.zip for the Chrome Web Store.
-import { createWriteStream, mkdirSync, readFileSync } from "node:fs";
+import { createWriteStream, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { ZipArchive } from "archiver";
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
@@ -15,10 +15,17 @@ const outFile = `build/map-services-enhanced-${pkg.version}.zip`;
 const output = createWriteStream(outFile);
 const archive = new ZipArchive({ zlib: { level: 9 } });
 
+const fail = (err) => {
+  console.error(`Build failed: ${err.message}`);
+  output.destroy();
+  rmSync(outFile, { force: true });
+  process.exit(1);
+};
+
 output.on("close", () => console.log(`Wrote ${outFile} (${archive.pointer()} bytes)`));
-archive.on("error", (err) => {
-  throw err;
-});
+// archiver reports skipped files (e.g. ENOENT) as warnings; treat them as failures so the zip is never incomplete.
+archive.on("warning", fail);
+archive.on("error", fail);
 
 archive.pipe(output);
 archive.glob("**", { cwd: "src", ignore: ["**/.DS_Store"] });
