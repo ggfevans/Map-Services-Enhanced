@@ -4,19 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Chrome extension (Manifest V2) that adds diagnostic and query tools to the HTML pages served by ArcGIS Server REST endpoints (`.../rest/services/...`). It packages the bookmarklets from [ESRI REST Diagnostics](https://github.com/raykendo/ESRI_REST_Diagnostics) into one tool. The code is plain vanilla JS with no framework, no bundler, no runtime dependencies, and no test suite.
+A Chrome extension (Manifest V3, Chromium browsers only) that adds diagnostic and query tools to the HTML pages served by ArcGIS Server REST endpoints (`.../rest/services/...`). It packages the bookmarklets from [ESRI REST Diagnostics](https://github.com/raykendo/ESRI_REST_Diagnostics) into one tool. The code is plain vanilla JS with no framework, no bundler, no runtime dependencies, and no test suite.
 
 ## Commands
 
-Grunt drives the build (`npm install` first; run the tasks with `npx grunt <task>`):
+Requires Node 20.19+. Run `npm install` first.
 
-- `grunt inspect`: ESLint only, over `src/**/*.js`
-- `grunt forTesting`: lint, then sync `src/` into `dist/`. Load `dist/` (or `src/` directly) as an unpacked extension at `chrome://extensions`.
-- `grunt` (default): lint, sync, uglify JS into `dist/src/`, then zip to `build/Release/MSE_<version>.zip`
+- `npm run lint`: ESLint 10 (flat config in `eslint.config.js`) over the repo. Formatting rules come from `@stylistic` (2-space indent, double quotes, semicolons).
+- `npm run build`: lint, then zip `src/` into `build/map-services-enhanced-<version>.zip`. The build fails if the versions in `package.json` and `src/manifest.json` differ, so bump both together.
+- To try the extension, open `chrome://extensions`, turn on Developer mode, and use "Load unpacked" on `src/`. Branded Chrome ignores `--load-extension`, so automated browser tests need Playwright's bundled Chromium.
 
-Lint rules (`.eslintrc.json`): 2-space indent, double quotes, required semicolons, ES6. **`linebreak-style` is set to `windows` (CRLF)**, but the files in the repo use LF, so lint may fail on line endings unless git converts them on checkout. Don't reformat whole files just to satisfy that rule.
-
-When you bump the version, update it in both `package.json` (which names the release zip) and `src/manifest.json`.
+There is no automated test suite yet.
 
 ## Layout
 
@@ -36,7 +34,7 @@ Each script is wrapped in a bare `{ ... }` block and defines its own copies of h
 
 **Page action popup** (`src/src/page_action/`): `search.js` searches the REST endpoint tree of the active tab, and `url_shortener.js` strips unneeded query parameters. Both use `chrome.tabs` (the permissions are limited to `activeTab` and `storage`).
 
-**Background** (`src/src/bg/background.js`) is an empty placeholder. `mapImages.js` and `queryTest.js` call `chrome.extension.sendMessage({}, cb)` purely as a "ready" handshake; no listener handles it.
+There is no background service worker. Nothing needs one, because the content scripts and the popup call `chrome.storage` and `chrome.tabs` directly. `mapImages.js` and `queryTest.js` start from a `window` `load` listener (MV2 used a `sendMessage` handshake).
 
 **Settings** live in `chrome.storage.sync`, and three places must stay in sync with each other:
 1. `src/src/options/options.html` + `options.js`: the Chrome options page, with hard-coded fields and defaults
