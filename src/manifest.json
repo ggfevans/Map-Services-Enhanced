@@ -3,6 +3,7 @@
   "name": "Map Services Enhanced",
   "short_name": "Map Services Enhanced",
   "version": "2.0.0",
+  "minimum_chrome_version": "93",
   "description": "An extension for analyzing, interrogating, and troubleshooting ArcGIS REST Services.",
   "homepage_url": "https://github.com/ggfevans/Map-Services-Enhanced",
   "icons": {
