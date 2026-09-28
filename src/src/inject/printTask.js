@@ -57,12 +57,12 @@
    */
   const hideInput = (node) => {
     let type = node.type || "";
-    switch (node.tag) {
+    switch (node.tagName) {
       case "INPUT":
         node.setAttribute("type", "hidden");
         break;
       default:
-        node.className = (node.className ? " " : "") + "hidden";
+        node.className += (node.className ? " " : "") + "hidden";
     }
     return type;
   };
@@ -73,7 +73,7 @@
    * @param {string} type - original type of the node 
    */
   const showInput = (node, type) => {
-    switch (node.tag) {
+    switch (node.tagName) {
       case "INPUT":
         node.setAttribute("type", type);
         break;
