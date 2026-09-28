@@ -1,0 +1,49 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-GB
+
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  collapse_walkthrough: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: ["master"]
+  path_filters:
+    - "!package-lock.json"
+    - "!build/**"
+    - "!src/icons/**"
+  path_instructions:
+    - path: "src/**/*.js"
+      instructions: |
+        Chrome Manifest V3 extension; vanilla JS with no bundler. Content scripts run on
+        untrusted ArcGIS REST pages and render untrusted server JSON: flag any innerHTML,
+        insertAdjacentHTML, outerHTML, document.write or eval, and require DOM construction
+        with text nodes instead. Flag MV2-only APIs (chrome.extension.*, background pages,
+        page_action).
+    - path: "src/manifest.json"
+      instructions: |
+        Flag any new permissions or host_permissions and explain why each is needed. The
+        declarativeContent rule in src/src/bg/background.js must stay in sync with the
+        content_scripts match patterns. The version must match package.json.
+    - path: "src/src/{options,config}/**"
+      instructions: |
+        Settings are defined in three places that must agree: options.html/options.js,
+        src/src/config/options.json, and each content script's chrome.storage.sync.get
+        defaults. Flag keys, values or defaults that diverge.
+  tools:
+    eslint:
+      enabled: true
+    gitleaks:
+      enabled: true
+
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "**/CLAUDE.md"
+
+chat:
+  auto_reply: true
