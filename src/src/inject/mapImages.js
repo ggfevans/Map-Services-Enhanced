@@ -222,19 +222,20 @@
     }
   };
 
-  chrome.extension.sendMessage({}, (/*response*/) => {    
-    let readyStateCheckInterval = setInterval(() => {
-      if (document.readyState === "complete") {
-        clearInterval(readyStateCheckInterval);
-        // collect the links on the web page to collect information about the content they link to.
-        chrome.storage.sync.get({
-          showMapImages: true
-        }, (items) => {
-          if (items.showMapImages) {
-            setup();
-          }
-        }); 
+  const onPageLoaded = () => {
+    // collect the links on the web page to collect information about the content they link to.
+    chrome.storage.sync.get({
+      showMapImages: true
+    }, (items) => {
+      if (items.showMapImages) {
+        setup();
       }
-    }, 10);
-  });
+    });
+  };
+
+  if (document.readyState === "complete") {
+    onPageLoaded();
+  } else {
+    window.addEventListener("load", onPageLoaded);
+  }
 }

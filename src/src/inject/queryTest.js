@@ -557,18 +557,17 @@
     }); 
   };
 
-  chrome.extension.sendMessage({}, function(/*response*/) {
-    const readyStateCheckInterval = setInterval(function() {
-      let url;
-      if (document.readyState === "complete") {
-        clearInterval(readyStateCheckInterval);
+  const onPageLoaded = () => {
+    // collect the links on the web page to collect information about the content they link to.
+    const url = window.location.href.split("?")[0];
 
-        // collect the links on the web page to collect information about the content they link to.
-        url = window.location.href.split("?")[0];
+    // handling query page with quick query helpers
+    queryHelper(url.replace(/\/query\/?$/i, ""));
+  };
 
-        // handling query page with quick query helpers
-        queryHelper(url.replace(/\/query\/?$/i, ""));        
-      }
-    }, 10);
-  });
+  if (document.readyState === "complete") {
+    onPageLoaded();
+  } else {
+    window.addEventListener("load", onPageLoaded);
+  }
 }
