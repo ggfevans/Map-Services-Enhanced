@@ -161,100 +161,100 @@
       storageItem[questionItem.property] = questionItem.default || "";
 
       switch (questionItem.type) {
-      case "checkbox": {
-        let checkboxLabel = loadElement("LABEL");
-        let checkbox = loadElement("INPUT", {
-          type: "checkbox",
-          name: questionItem.property
-        });
-        checkboxLabel.appendChild(checkbox);
-        let textspan = loadElement("SPAN", {}, questionItem.label);
-        checkboxLabel.appendChild(textspan);
-        parentNode.appendChild(checkboxLabel);
-        if (!isLastItem) {
-          parentNode.appendChild(loadElement("BR"));
-        }
-        chrome.storage.sync.get(storageItem, items => {
-          checkbox.checked = items[questionItem.property];
-        });
-        break;
-      }
-      case "radio": {
-        let checkboxQuestion = loadElement("SPAN",  {}, questionItem.label);
-        parentNode.appendChild(checkboxQuestion);
-
-        const radioBoxes = questionItem.options.map(option => {
-          parentNode.appendChild(loadElement("BR"));
+        case "checkbox": {
           let checkboxLabel = loadElement("LABEL");
           let checkbox = loadElement("INPUT", {
-            type: "radio",
-            value: option.value,
+            type: "checkbox",
             name: questionItem.property
           });
-          let textspan = loadElement("SPAN", {}, option.label);
           checkboxLabel.appendChild(checkbox);
+          let textspan = loadElement("SPAN", {}, questionItem.label);
           checkboxLabel.appendChild(textspan);
           parentNode.appendChild(checkboxLabel);
-          return checkbox;
-        });
-  
-        chrome.storage.sync.get(storageItem, items => {
-          radioBoxes.forEach(radioBox => {
-            //console.log(radioBox.value, items[questionItem.property], questionItem.property);
-            if (radioBox.value === items[questionItem.property]) {
-              radioBox.checked = true;
-            }
+          if (!isLastItem) {
+            parentNode.appendChild(loadElement("BR"));
+          }
+          chrome.storage.sync.get(storageItem, items => {
+            checkbox.checked = items[questionItem.property];
           });
-        });
-        break;
-      }
-      case "textarea": {
-        let label = loadElement("P", {}, questionItem.label);
-        let blank = loadElement("TEXTAREA", {
-          rows: "3",
-          name: questionItem.property,
-          placeholder: questionItem.placeholder || ""
-        });
-        parentNode.appendChild(label);
-        parentNode.appendChild(blank);
-        chrome.storage.sync.get(storageItem, items => {
-          blank.value = items[questionItem.property];
-        });
-        break;
-      }
-      case "number": {
-        let label = loadElement("P", {}, questionItem.label);
-        let blank = loadElement("INPUT", {
-          type: "number",
-          name: questionItem.property,
-          placeholder: questionItem.placeholder || ""
-        });
-        parentNode.appendChild(label);
-        parentNode.appendChild(blank);
-        if (!isLastItem) {
-          parentNode.appendChild(loadElement("BR"));
+          break;
         }
-        chrome.storage.sync.get(storageItem, items => {
-          blank.value = items[questionItem.property];
-        });
-        break;
-      }
-      default: {
-        let label = loadElement("P", {}, questionItem.label);
-        let blank = loadElement("INPUT", {
-          type: "text",
-          name: questionItem.property,
-          placeholder: questionItem.placeholder || ""
-        });
-        parentNode.appendChild(label);
-        parentNode.appendChild(blank);
-        if (!isLastItem) {
-          parentNode.appendChild(loadElement("BR"));
+        case "radio": {
+          let checkboxQuestion = loadElement("SPAN",  {}, questionItem.label);
+          parentNode.appendChild(checkboxQuestion);
+
+          const radioBoxes = questionItem.options.map(option => {
+            parentNode.appendChild(loadElement("BR"));
+            let checkboxLabel = loadElement("LABEL");
+            let checkbox = loadElement("INPUT", {
+              type: "radio",
+              value: option.value,
+              name: questionItem.property
+            });
+            let textspan = loadElement("SPAN", {}, option.label);
+            checkboxLabel.appendChild(checkbox);
+            checkboxLabel.appendChild(textspan);
+            parentNode.appendChild(checkboxLabel);
+            return checkbox;
+          });
+  
+          chrome.storage.sync.get(storageItem, items => {
+            radioBoxes.forEach(radioBox => {
+            //console.log(radioBox.value, items[questionItem.property], questionItem.property);
+              if (radioBox.value === items[questionItem.property]) {
+                radioBox.checked = true;
+              }
+            });
+          });
+          break;
         }
-        chrome.storage.sync.get(storageItem, items => {
-          blank.value = items[questionItem.property];
-        });
-      }      
+        case "textarea": {
+          let label = loadElement("P", {}, questionItem.label);
+          let blank = loadElement("TEXTAREA", {
+            rows: "3",
+            name: questionItem.property,
+            placeholder: questionItem.placeholder || ""
+          });
+          parentNode.appendChild(label);
+          parentNode.appendChild(blank);
+          chrome.storage.sync.get(storageItem, items => {
+            blank.value = items[questionItem.property];
+          });
+          break;
+        }
+        case "number": {
+          let label = loadElement("P", {}, questionItem.label);
+          let blank = loadElement("INPUT", {
+            type: "number",
+            name: questionItem.property,
+            placeholder: questionItem.placeholder || ""
+          });
+          parentNode.appendChild(label);
+          parentNode.appendChild(blank);
+          if (!isLastItem) {
+            parentNode.appendChild(loadElement("BR"));
+          }
+          chrome.storage.sync.get(storageItem, items => {
+            blank.value = items[questionItem.property];
+          });
+          break;
+        }
+        default: {
+          let label = loadElement("P", {}, questionItem.label);
+          let blank = loadElement("INPUT", {
+            type: "text",
+            name: questionItem.property,
+            placeholder: questionItem.placeholder || ""
+          });
+          parentNode.appendChild(label);
+          parentNode.appendChild(blank);
+          if (!isLastItem) {
+            parentNode.appendChild(loadElement("BR"));
+          }
+          chrome.storage.sync.get(storageItem, items => {
+            blank.value = items[questionItem.property];
+          });
+        }      
       }
     }
     cancelForm() {

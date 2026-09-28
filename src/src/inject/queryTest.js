@@ -3,7 +3,7 @@
   
   
 
-   // Status effects
+  // Status effects
   const STATUS = {
     LOADING: "loading-start",
     LOAD_COMPLETE: "loading-complete"
@@ -182,12 +182,12 @@
       const submitButtons = document.querySelectorAll("input[type='submit']");
       let submitButton;
       switch(item.queryHelperSelectAll) {
-      case "get":
-        submitButton = submitButtons[0];
-        break;
-      case "post":
-        submitButton = submitButtons[1];
-        break;
+        case "get":
+          submitButton = submitButtons[0];
+          break;
+        case "post":
+          submitButton = submitButtons[1];
+          break;
       }
 
       if (submitButton) {
@@ -284,7 +284,7 @@
    */
   function addSqlControl (parentNode) {
     const btns = loadElement("DIV", {"class": "buttonbox"});
-     //[" = ", " &lt;&gt; ", " LIKE ", " &gt; ", " &gt;= ", " AND ", " &lt; ", " &lt;= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "&#39;&#39;", " IN ", ", " ].forEach(function (txt) {
+    //[" = ", " &lt;&gt; ", " LIKE ", " &gt; ", " &gt;= ", " AND ", " &lt; ", " &lt;= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "&#39;&#39;", " IN ", ", " ].forEach(function (txt) {
     [" = ", " <> ", " LIKE ", " > ", " >= ", " AND ", " < ", " <= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "''", " IN ", ", ", "NULL" ].forEach(function (txt) {
       btns.appendChild(loadElement("button", {
         "class": "sql",
@@ -296,7 +296,7 @@
   }
 
 
- /**
+  /**
    * Represents the SidePanel
    * @class SidePanel
    * @param {string} title title to add to the sidepanel
@@ -347,7 +347,7 @@
     }
   }
 
-   /**
+  /**
    * Field Selector
    */
   class FieldSelector {
@@ -477,7 +477,7 @@
       // loading of values
       notifyLoading(true);
       cleanElement(this.valueList);
-      this.valueList.appendChild(loadElement("option", {"value": ""}, "Loading..."))
+      this.valueList.appendChild(loadElement("option", {"value": ""}, "Loading..."));
       this.valueList.setAttribute("disabled", "disabled");
       // stop additional clicks on fieldSelect from subsequent calls
       this.fieldSelect.setAttribute("disabled", "disabled");

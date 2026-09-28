@@ -81,7 +81,7 @@
       node.appendChild(loadElement("b", {}, title));
     } else {
       node.appendChild(loadElement("b", {}, `${title}: `));
-      node.appendChild(document.createTextNode(content instanceof Object ? JSON.stringify(content) : content))
+      node.appendChild(document.createTextNode(content instanceof Object ? JSON.stringify(content) : content));
     }
     return node;
   };
@@ -100,7 +100,7 @@
     for (let i in content) {
       ul.appendChild(li(unCamelCase(i), content[i]));
     }
-    node.appendChild(loadElement("b", {}, title))
+    node.appendChild(loadElement("b", {}, title));
     node.appendChild(ul);
     return node;
   };
@@ -197,19 +197,19 @@
     }
 
     switch(codeNumber) {
-    case -2147220985:
-      return li("Cannot count features with valid shape fields in a shapefile");
-    case 400:
-      if (arguments.length > 1) {
-        if (arguments[1].hasOwnProperty("type")) {
-          switch(arguments[1].type) {
-          case "esriFieldTypeOID":
-            return li("Service does not support checking for null ObjectID");
-          case "esriFieldTypeGeometry": 
-            return li("Service data source does not support checking for null/empty geometry");
+      case -2147220985:
+        return li("Cannot count features with valid shape fields in a shapefile");
+      case 400:
+        if (arguments.length > 1) {
+          if (arguments[1].hasOwnProperty("type")) {
+            switch(arguments[1].type) {
+              case "esriFieldTypeOID":
+                return li("Service does not support checking for null ObjectID");
+              case "esriFieldTypeGeometry": 
+                return li("Service data source does not support checking for null/empty geometry");
+            }
           }
         }
-      }
     }
 
     return addSubList("Error", err0r, "error");
@@ -351,13 +351,13 @@
     if (data && data.hasOwnProperty("fields") && data.fields.length) {
       data.fields.some((field) => {
         switch(field.type) {
-        case "esriFieldTypeOID":
-        case "":
-          oid = field.name;
-          break;
-        case "esriFieldTypeGeometry":
-          shape = field.name;
-          break;
+          case "esriFieldTypeOID":
+          case "":
+            oid = field.name;
+            break;
+          case "esriFieldTypeGeometry":
+            shape = field.name;
+            break;
         }
 
         return oid && shape;
@@ -473,7 +473,7 @@
       let item = document.createElement("li");
       if (response.count !== undefined && response.count !== null) {
         item.appendChild(loadElement("b", {}, "Features with values:"));
-        item.appendChild(document.createTextNode(` ${response.count} `))
+        item.appendChild(document.createTextNode(` ${response.count} `));
         if (response.count === 0) {
           item.appendChild(loadElement("b", {"style": "color:#f00;"}, "!!! "));
         }
@@ -486,24 +486,24 @@
         const newTimeCheck = Date.now();
 
         ajax(url + "/query?where=not+field+is+null+and+field+<>%27%27&returnGeometry=false&returnCountOnly=true&f=json".replace(/field/g, field.name), 
-            (response2) => {
-              let item2 = document.createElement("li");
-              const hasError = response2.hasOwnProperty("error") && !!response2.error;
-              if (response2.count !== undefined && response2.count !== null) {
-                item2.appendChild(loadElement("b", {}, "Features without empty values:"));
-                item2.appendChild(document.createTextNode(` ${response2.count} `));
-                if (response2.count === 0) {
-                  item2.appendChild(loadElement("b", {"style": "color:#f00;"}, "!!! "));
-                }
-                item2.appendChild(loadElement("i", {}, `Response time: ${responseTime(newTimeCheck)}`));
-              } else if (hasError) {
-                item2 = reportError(response2.error);
+          (response2) => {
+            let item2 = document.createElement("li");
+            const hasError = response2.hasOwnProperty("error") && !!response2.error;
+            if (response2.count !== undefined && response2.count !== null) {
+              item2.appendChild(loadElement("b", {}, "Features without empty values:"));
+              item2.appendChild(document.createTextNode(` ${response2.count} `));
+              if (response2.count === 0) {
+                item2.appendChild(loadElement("b", {"style": "color:#f00;"}, "!!! "));
               }
-              resultList.appendChild(item2);
-
-              checkForNulls(url, fields, nodes);
+              item2.appendChild(loadElement("i", {}, `Response time: ${responseTime(newTimeCheck)}`));
+            } else if (hasError) {
+              item2 = reportError(response2.error);
             }
-          );
+            resultList.appendChild(item2);
+
+            checkForNulls(url, fields, nodes);
+          }
+        );
       } else {
         checkForNulls(url, fields, nodes); 
       }

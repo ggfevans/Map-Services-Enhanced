@@ -7,7 +7,7 @@
     resultList = d.getElementById("searchresults");
   let locs, hits;
 		
-	/**
+  /**
    * requests data from a URL and returns it in JSON format
    * @function ajax
    * @param {string} u - URL to send the requests
@@ -38,7 +38,7 @@
     }
   };
 
-   /**
+  /**
    * Creates an HTML element.
    * @function loadElement
    * @param {string} tag - HTML tag name that you want to create.
@@ -92,7 +92,7 @@
     link.appendChild(d.createTextNode(url.replace(/^\S*\/rest\/services\//i, ".")));
     link.appendChild(d.createElement("br"));
     link.appendChild(loadElement("b", {}, `${field}: `));
-    link.appendChild(d.createTextNode(result))
+    link.appendChild(d.createTextNode(result));
     li.appendChild(link);
     return li;
   };
@@ -187,7 +187,7 @@
     });
   };
 
-	// function called on mouse click, parses searches, sets up tests, and queries the current REST service.
+  // function called on mouse click, parses searches, sets up tests, and queries the current REST service.
   btn.addEventListener("click", () => {
     let searchFor, myTest;
     if (txt.value) {
