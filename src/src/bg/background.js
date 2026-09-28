@@ -1,8 +1,8 @@
 {
   // Matches the content script patterns in manifest.json: *://*/*/rest/services and *://*/*/rest/services/*
+  // (http/https only, with at least one path segment before /rest/services).
   const REST_SERVICES_PAGE = {
-    schemes: ["http", "https"],
-    pathMatches: "/rest/services(/.*)?$"
+    originAndPathMatches: "^https?://[^/]+/.+/rest/services(/.*)?$"
   };
 
   // The toolbar button is disabled everywhere except ArcGIS REST pages, where the rule below shows it.
