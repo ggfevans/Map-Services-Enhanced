@@ -65,7 +65,7 @@
 	 * @param {object} data - JSON object.
    */
   const getFinalVal = (fields, data) => {
-    let result = data.hasOwnProperty(fields[0]) ? data[fields[0]] : null;
+    let result = Object.hasOwn(data, fields[0]) ? data[fields[0]] : null;
     if (result != null && fields.length > 1) {
       if (result instanceof Array) {
         return result.map((item) => getFinalVal(fields.slice(1), item));
@@ -213,7 +213,7 @@
         active: true, 
         currentWindow: true
       }, (tabs) => {
-        tabs.forEach((tab) => queryMe([tab.url.replace(/\?[\B]*$/, "")], myTest));
+        tabs.forEach((tab) => queryMe([tab.url.replace(/\?.*$/, "")], myTest));
       });
     } else { 
       alert("Please enter a value"); 

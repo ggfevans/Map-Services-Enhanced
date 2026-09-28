@@ -1,11 +1,6 @@
 {
   const IMAGE_LOOKUP = {};
   const NO_IMAGE_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-  // Status effects
-  const STATUS = {
-    LOADING: "loading-start",
-    LOAD_COMPLETE: "loading-complete"
-  };
   const WIDTH_HEIGHT = {
     width: 300,
     height: 200

@@ -147,12 +147,12 @@
    */
   const showSpatialReferenceData = (data) => {
     let val="&nbsp;No valid spatial reference available &nbsp;",
-      nodeCSS = "", 
+      nodeCSS,
       container = null,
-      spatialRefNode = null, 
-      cacheStatus = null, 
+      spatialRefNode,
+      cacheStatus,
       sr;
-    if (data && data.hasOwnProperty("spatialReference")) {
+    if (data && Object.hasOwn(data, "spatialReference")) {
       sr = data.spatialReference;
       val = sr.latestWkid || sr.wkid || sr.latestWkt || sr.wkt || val;
       nodeCSS = `color: ${getColor(val)};background: ${getCompColor(val)};border-radius:4px;padding:2px;`;
@@ -184,15 +184,16 @@
    * Error reporting
    * @function reportError
    * @param {error} err0r - error object returned.
+   * @param {object} [field] - the field being queried, used to explain some 400 errors.
    * @returns {object} an HTML node containing the error message.
    */
-  const reportError = (err0r) => {
+  const reportError = (err0r, field) => {
     let codeNumber = -99999;
 
-    if (err0r.hasOwnProperty("code")) {
+    if (Object.hasOwn(err0r, "code")) {
       codeNumber = err0r.code;
     }
-    if (err0r.hasOwnProperty("Code")) {
+    if (Object.hasOwn(err0r, "Code")) {
       codeNumber = err0r.Code;
     }
 
@@ -200,9 +201,9 @@
       case -2147220985:
         return li("Cannot count features with valid shape fields in a shapefile");
       case 400:
-        if (arguments.length > 1) {
-          if (arguments[1].hasOwnProperty("type")) {
-            switch(arguments[1].type) {
+        if (field) {
+          if (Object.hasOwn(field, "type")) {
+            switch(field.type) {
               case "esriFieldTypeOID":
                 return li("Service does not support checking for null ObjectID");
               case "esriFieldTypeGeometry": 
@@ -233,72 +234,72 @@
       div.appendChild(ul);
 
       // handling errors
-      if (data.hasOwnProperty("error") && data.error) {
+      if (Object.hasOwn(data, "error") && data.error) {
         dF.appendChild(reportError(data.error));
       }
 
-      if (data.hasOwnProperty("description") && data.description) {
+      if (Object.hasOwn(data, "description") && data.description) {
         dF.appendChild(li("Description", data.description));
       }
-      if (data.hasOwnProperty("serviceDescription") && data.serviceDescription) {
+      if (Object.hasOwn(data, "serviceDescription") && data.serviceDescription) {
         dF.appendChild(li("Service Description", data.serviceDescription));
       }
-      if (data.hasOwnProperty("copyrightText") && data.copyrightText) {
+      if (Object.hasOwn(data, "copyrightText") && data.copyrightText) {
         dF.appendChild(li("&copy;", data.copyrightText));
       }
-      if (data.hasOwnProperty("layers")) {
+      if (Object.hasOwn(data, "layers")) {
         dF.appendChild(li("# Layers", data.layers.length));
       }
-      if (data.hasOwnProperty("tables") && data.tables.length) {
+      if (Object.hasOwn(data, "tables") && data.tables.length) {
         dF.appendChild(li("# Tables", data.tables.length));
       }
-      if (data.hasOwnProperty("minScale")) {
+      if (Object.hasOwn(data, "minScale")) {
         dF.appendChild(li("Min Scale", data.minScale || "None"));
       }
-      if (data.hasOwnProperty("maxScale")) {
+      if (Object.hasOwn(data, "maxScale")) {
         dF.appendChild(li("Max Scale", data.maxScale || "None"));
       }
-      if (data.hasOwnProperty("initialExtent")) {
+      if (Object.hasOwn(data, "initialExtent")) {
         dF.appendChild(addSubList("Initial Extent", data.initialExtent));
       }
-      if (data.hasOwnProperty("fullExtent")) {
+      if (Object.hasOwn(data, "fullExtent")) {
         dF.appendChild(addSubList("Full Extent", data.fullExtent));
       }
-      if (data.hasOwnProperty("extent")) {
+      if (Object.hasOwn(data, "extent")) {
         dF.appendChild(addSubList("Extent", data.extent));
       }
-      if (data.hasOwnProperty("units") && data.units) {
+      if (Object.hasOwn(data, "units") && data.units) {
         dF.appendChild(li("Units", data.units.replace("esri", "")));              
       }
-      if (data.hasOwnProperty("documentInfo")) {
+      if (Object.hasOwn(data, "documentInfo")) {
         dF.appendChild(addSubList("Document Info", data.documentInfo));
       }
-      if (data.hasOwnProperty("documentInfo")) {
+      if (Object.hasOwn(data, "documentInfo")) {
         dF.appendChild(li("Max Record Count", data.maxRecordCount));
       }
-      if (data.hasOwnProperty("geometryType") && data.geometryType) {
+      if (Object.hasOwn(data, "geometryType") && data.geometryType) {
         dF.appendChild(li("Geometry", data.geometryType.replace("esriGeometry", "")));
       }
       if (data.definitionExpression) {
         dF.appendChild(li("Definition Expression", data.definitionExpression));
       }
-      if (data.hasOwnProperty("defaultVisibility")) {
+      if (Object.hasOwn(data, "defaultVisibility")) {
         dF.appendChild(li("Visible by default", data.defaultVisibility.toString()));
       }
-      if (data.hasOwnProperty("displayField") && data.displayField) {
+      if (Object.hasOwn(data, "displayField") && data.displayField) {
         dF.appendChild(li("Display Field", data.displayField));
       }
-      if (data.hasOwnProperty("objectIdField") && data.objectIdField) {
+      if (Object.hasOwn(data, "objectIdField") && data.objectIdField) {
         dF.appendChild(li("Object ID Field", data.objectIdField));
       }
-      if (data.hasOwnProperty("globalIdField") && data.globalIdField) {
+      if (Object.hasOwn(data, "globalIdField") && data.globalIdField) {
         dF.appendChild(li("Global ID Field", data.globalIdField));
       }
       
       if (data.relationships && data.relationships.length) {
         dF.appendChild(li("Has Relationships"));
       }
-      if (data.hasOwnProperty("isDataVersioned")) {
+      if (Object.hasOwn(data, "isDataVersioned")) {
         dF.appendChild(li("Versioned Data", data.isDataVersioned ? "Yes" : "No"));
       }
 
@@ -306,7 +307,7 @@
         dF.appendChild(li("Date fields Time Zone", data.dateFieldsTimeReference.timeZone + "(Daylight Savings Time " + (data.dateFieldsTimeReference.respectsDaylightSaving ? "" : "not ") + "supported)"));
       }
 
-      if (data.hasOwnProperty("supportedQueryFormats")) {
+      if (Object.hasOwn(data, "supportedQueryFormats")) {
         dF.appendChild(li("Supported Query Formats", data.supportedQueryFormats ));
       }
       if (data.advancedQueryCapabilities) {
@@ -340,15 +341,15 @@
       ul = document.createElement("ul");
     let oid, shape;
 
-    if (data && data.hasOwnProperty("objectIdField") && data.objectIdField) {
+    if (data && Object.hasOwn(data, "objectIdField") && data.objectIdField) {
       oid = data.objectIdField;
     }
     /*
-    if (data && data.hasOwnProperty("globalIdField") && data.globalIdField) {
+    if (data && Object.hasOwn(data, "globalIdField") && data.globalIdField) {
       oid = data.globalIdField;
     }
     */
-    if (data && data.hasOwnProperty("fields") && data.fields.length) {
+    if (data && Object.hasOwn(data, "fields") && data.fields.length) {
       data.fields.some((field) => {
         switch(field.type) {
           case "esriFieldTypeOID":
@@ -369,7 +370,7 @@
         if (response.count !== undefined && response.count !== null) {
           ul.appendChild(li("Number of features", response.count ));
         }
-        if (response.hasOwnProperty("error") && response.error) {
+        if (Object.hasOwn(response, "error") && response.error) {
           ul.appendChild(reportError(response.error, {"type": "esriFieldTypeOID"}));
         }
       });
@@ -382,7 +383,7 @@
         if (response.count !== undefined && response.count !== null) {
           ul.appendChild(li("Features with shapes", response.count ));
         }
-        if (response.hasOwnProperty("error") && response.error) {
+        if (Object.hasOwn(response, "error") && response.error) {
           ul.appendChild(reportError(response.error, {"type": "esriFieldTypeGeometry"}));
         }
       });
@@ -443,7 +444,7 @@
     const uls = document.getElementsByTagName("ul"),
       labels = [].map.call(uls, getPreviousLabel);
     for (let i = uls.length - 1; i > -1; i--) {
-      if (/^Fields\:/.test(labels[i])) {
+      if (/^Fields:/.test(labels[i])) {
         return [].slice.call(uls[i].children, 0);
       }
     }
@@ -469,7 +470,7 @@
     node.appendChild(resultList);
     const timeCheck = Date.now();
     ajax(url + params, (response) => {
-      const hasError = response.hasOwnProperty("error") && !!response.error;
+      const hasError = Object.hasOwn(response, "error") && !!response.error;
       let item = document.createElement("li");
       if (response.count !== undefined && response.count !== null) {
         item.appendChild(loadElement("b", {}, "Features with values:"));
@@ -488,7 +489,7 @@
         ajax(url + "/query?where=not+field+is+null+and+field+<>%27%27&returnGeometry=false&returnCountOnly=true&f=json".replace(/field/g, field.name), 
           (response2) => {
             let item2 = document.createElement("li");
-            const hasError = response2.hasOwnProperty("error") && !!response2.error;
+            const hasError = Object.hasOwn(response2, "error") && !!response2.error;
             if (response2.count !== undefined && response2.count !== null) {
               item2.appendChild(loadElement("b", {}, "Features without empty values:"));
               item2.appendChild(document.createTextNode(` ${response2.count} `));
@@ -535,7 +536,7 @@
         params = "/query?where=field+%3D+value&returnGeometry=false&returnCountOnly=true&f=json".replace("field", item.field).replace("value", value);
       ajax(url + params, (response) => {
         let node = document.createElement("li");
-        const hasError = response.hasOwnProperty("error") && !!response.error;
+        const hasError = Object.hasOwn(response, "error") && !!response.error;
         if (response.count !== undefined && response.count !== null) {
           node.appendChild(loadElement("b", {}, `${item.name}: `));
           node.appendChild(document.createTextNode(` ${response.count} `));

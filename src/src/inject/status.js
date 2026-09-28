@@ -1,9 +1,4 @@
 {
-  // Status effects
-  const STATUS = {
-    LOADING: "loading-start",
-    LOAD_COMPLETE: "loading-complete"
-  };
 
   /**
    * requests data from a URL and returns it in JSON format

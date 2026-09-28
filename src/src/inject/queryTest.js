@@ -3,11 +3,6 @@
   
   
 
-  // Status effects
-  const STATUS = {
-    LOADING: "loading-start",
-    LOAD_COMPLETE: "loading-complete"
-  };
 
   /**
    * requests data from a URL and returns it in JSON format
@@ -164,7 +159,7 @@
     }
 
     formFields.forEach((item) => {
-      if (formData.hasOwnProperty(item.name)) {
+      if (Object.hasOwn(formData, item.name)) {
         if (item.type && item.type === "radio" && formData[item.name] === item.value) {
           item.checked = true;
         } else {
@@ -234,7 +229,7 @@
         if (!(statContent instanceof Array)) {
           throw "Not a valid array";
         }
-      } catch(err) {
+      } catch {
         statContent = [];
       }
     }
