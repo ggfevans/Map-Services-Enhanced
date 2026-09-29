@@ -79,6 +79,7 @@ try {
     return page;
   };
   // Waits until at least one match exists (or the timeout passes), then returns the match count.
+  // The count can still be rising (results load asynchronously), so only compare it with zero.
   const count = async (locator) => {
     await locator.first().waitFor({ state: "attached", timeout: TIMEOUT }).catch(() => {});
     return locator.count();
@@ -102,24 +103,24 @@ try {
   const root = await open("services root", BASE);
   record("services root: status icon injected", (await count(root.locator(".status-icon"))) > 0);
   const srLinks = await count(root.locator("a[href*='spatialreference.org']"));
-  record("services root: spatial reference links rendered", srLinks > 0, `${srLinks} links`);
+  record("services root: spatial reference links rendered", srLinks > 0);
 
   const mapServer = await open("MapServer", `${BASE}/USA/MapServer`);
   const blocks = await count(mapServer.locator(".datablock"));
-  record("MapServer: metadata blocks rendered", blocks > 0, `${blocks} blocks`);
+  record("MapServer: metadata blocks rendered", blocks > 0);
 
   const layer = await open("layer", `${BASE}/USA/MapServer/0`);
   const fieldCounts = await count(layer.getByText("Features with values:"));
-  record("layer page: field value counts rendered", fieldCounts > 0, `${fieldCounts} fields`);
+  record("layer page: field value counts rendered", fieldCounts > 0);
 
   const query = await open("query page", `${BASE}/USA/MapServer/0/query`);
   record("query page: side panel rendered", (await count(query.locator(".sidepanel"))) > 0);
   const sqlButtons = await count(query.locator("button.sql"));
-  record("query page: SQL buttons rendered", sqlButtons > 0, `${sqlButtons} buttons`);
+  record("query page: SQL buttons rendered", sqlButtons > 0);
 
   const print = await open("print page", `${BASE}/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task/execute`);
   const selects = await count(print.locator("select"));
-  record("print page: choice lists swapped in", selects > 0, `${selects} selects`);
+  record("print page: choice lists swapped in", selects > 0);
   // printTask.js fills the field named Web_Map_as_JSON (a textarea or an input) with the saved default.
   const webMapField = print.locator("[name='Web_Map_as_JSON']").first();
   const webMapValue = await poll(() => webMapField.inputValue().catch(() => null), (v) => v === WEB_MAP_JSON);
