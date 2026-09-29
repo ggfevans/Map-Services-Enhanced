@@ -39,9 +39,10 @@ const poll = async (fn, predicate, timeout = TIMEOUT) => {
 };
 
 const results = [];
+// ok: true = PASS, false = FAIL, null = SKIP (the condition under test could not be set up).
 const record = (name, ok, detail = "") => {
   results.push({ name, ok });
-  console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? `  (${detail})` : ""}`);
+  console.log(`${ok === null ? "SKIP" : ok ? "PASS" : "FAIL"}  ${name}${detail ? `  (${detail})` : ""}`);
 };
 
 const ctx = await chromium.launchPersistentContext(PROFILE, {
@@ -87,12 +88,14 @@ try {
   const optionsPage = await open("options page", `chrome-extension://${extId}/src/options/options.html`);
   record("options page: inputs rendered", (await count(optionsPage.locator("input"))) > 5);
   await optionsPage.locator("#mapimagewidth").fill("321");
-  await optionsPage.locator("#defaultwebmapasjson").fill("{\"operationalLayers\":[]}");
+  const WEB_MAP_JSON = "{\"operationalLayers\":[]}";
+  await optionsPage.locator("#defaultwebmapasjson").fill(WEB_MAP_JSON);
   await optionsPage.locator("#save").click();
+  const savedMatches = (items) => items.mapImageWidth === 321 && items.defaultWebMapAsJSON === WEB_MAP_JSON;
   const saved = await poll(
     () => optionsPage.evaluate(() => new Promise((res) => chrome.storage.sync.get(["mapImageWidth", "defaultWebMapAsJSON"], res))),
-    (items) => items.mapImageWidth === 321 && Boolean(items.defaultWebMapAsJSON));
-  record("options page: save writes chrome.storage", saved.mapImageWidth === 321 && Boolean(saved.defaultWebMapAsJSON));
+    savedMatches);
+  record("options page: save writes chrome.storage", savedMatches(saved), JSON.stringify(saved));
 
   // 3. Content scripts on each page type.
   const other = await open("non-REST page", "https://example.com/");
@@ -119,8 +122,8 @@ try {
   record("print page: choice lists swapped in", selects > 0, `${selects} selects`);
   // printTask.js fills the field named Web_Map_as_JSON (a textarea or an input) with the saved default.
   const webMapField = print.locator("[name='Web_Map_as_JSON']").first();
-  const webMapValue = await poll(() => webMapField.inputValue().catch(() => null), (v) => v === saved.defaultWebMapAsJSON);
-  record("print page: Web_Map_as_JSON pre-filled with the saved default", webMapValue === saved.defaultWebMapAsJSON);
+  const webMapValue = await poll(() => webMapField.inputValue().catch(() => null), (v) => v === WEB_MAP_JSON);
+  record("print page: Web_Map_as_JSON pre-filled with the saved default", webMapValue === WEB_MAP_JSON);
 
   // 4. Toolbar action is enabled on REST pages only.
   const expectedState = (url) => REST_PAGE.test(url.split(/[?#]/)[0]);
@@ -145,10 +148,20 @@ try {
     });
   };
   record("navigation: enabled on REST page", (await poll(navEnabled, (v) => v === true)) === true);
+  // Page state survives a back/forward cache restore but not a reload, so this marker tells them apart.
+  await nav.evaluate(() => {
+    window.__msePageshow = [];
+    window.addEventListener("pageshow", (evt) => window.__msePageshow.push(evt.persisted));
+  });
   await nav.goto("https://example.com/", { waitUntil: "load" });
   record("navigation: disabled after leaving REST page", (await poll(navEnabled, (v) => v === false)) === false);
   await nav.goBack({ waitUntil: "load" });
-  record("navigation: enabled again after Back", (await poll(navEnabled, (v) => v === true)) === true);
+  const backEnabled = (await poll(navEnabled, (v) => v === true)) === true;
+  const fromCache = await nav.evaluate(() => window.__msePageshow?.at(-1) === true);
+  record("navigation: enabled again after Back", backEnabled, fromCache ? "restored from bfcache" : "page was reloaded");
+  // status.js re-sends on a persisted pageshow; that path only runs when Chrome restores from the bfcache.
+  record("navigation: bfcache restore re-enables via pageshow", fromCache ? backEnabled : null,
+    fromCache ? "" : "Chrome reloaded the page instead of restoring it from the bfcache");
 
   // The popup really opens on a REST tab, and Chrome refuses it elsewhere.
   const openPopupOn = async (page) => {
@@ -194,7 +207,8 @@ try {
   await ctx.close();
   rmSync(EXT, { recursive: true, force: true });
   rmSync(PROFILE, { recursive: true, force: true });
-  const failed = results.filter((r) => !r.ok).length;
-  console.log(`\n${results.length - failed}/${results.length} passed`);
+  const failed = results.filter((r) => r.ok === false).length;
+  const skipped = results.filter((r) => r.ok === null).length;
+  console.log(`\n${results.length - failed - skipped}/${results.length} passed${skipped ? `, ${skipped} skipped` : ""}`);
   process.exit(failed ? 1 : 0);
 }
