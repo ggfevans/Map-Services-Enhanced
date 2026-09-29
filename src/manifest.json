@@ -65,7 +65,6 @@
   ],
   "permissions": [
     "activeTab",
-    "declarativeContent",
     "storage"
   ],
   "web_accessible_resources": [

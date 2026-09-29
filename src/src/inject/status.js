@@ -1,4 +1,9 @@
 {
+  // Enable the toolbar button for this tab (see src/src/bg/background.js). Re-send when the page is
+  // restored from the back/forward cache, because Chrome clears the tab's action state on navigation.
+  const enableAction = () => chrome.runtime.sendMessage({ type: "enableAction" });
+  enableAction();
+  window.addEventListener("pageshow", (evt) => evt.persisted && enableAction());
 
   /**
    * requests data from a URL and returns it in JSON format
