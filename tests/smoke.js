@@ -24,6 +24,20 @@ const manifest = JSON.parse(readFileSync(join(EXT, "manifest.json"), "utf8"));
 manifest.permissions.push("tabs");
 writeFileSync(join(EXT, "manifest.json"), JSON.stringify(manifest));
 
+// How long each check waits for the live server and extension callbacks before failing.
+const TIMEOUT = 30000;
+
+// Polls fn until predicate(value) holds or the timeout passes; returns the last value either way.
+const poll = async (fn, predicate, timeout = TIMEOUT) => {
+  const deadline = Date.now() + timeout;
+  let value = await fn();
+  while (!predicate(value) && Date.now() < deadline) {
+    await new Promise((res) => setTimeout(res, 250));
+    value = await fn();
+  }
+  return value;
+};
+
 const results = [];
 const record = (name, ok, detail = "") => {
   results.push({ name, ok });
@@ -45,101 +59,103 @@ try {
   await extensionsPage.evaluate(() => new Promise((res) => chrome.developerPrivate.updateProfileConfiguration({ inDeveloperMode: true }, res)));
   const cdp = await ctx.browser().newBrowserCDPSession();
   const { id: extId } = await cdp.send("Extensions.loadUnpacked", { path: EXT });
-  await extensionsPage.waitForTimeout(1500);
-  const extInfo = await extensionsPage.evaluate((id) => new Promise((res) => chrome.developerPrivate.getExtensionInfo(id, (e) => res(e && {
+  const extInfo = await poll(() => extensionsPage.evaluate((id) => new Promise((res) => chrome.developerPrivate.getExtensionInfo(id, (e) => res(e && {
     state: e.state,
     manifestErrors: e.manifestErrors.map((m) => m.message)
-  }))), extId);
+  }))), extId), (info) => info?.state === "ENABLED");
   record("extension loaded and enabled", extInfo?.state === "ENABLED" && extInfo.manifestErrors.length === 0, JSON.stringify(extInfo));
   const sw = ctx.serviceWorkers().find((w) => w.url().includes(extId))
     || await ctx.waitForEvent("serviceworker", { predicate: (w) => w.url().includes(extId), timeout: 15000 }).catch(() => null);
   record("service worker registered", Boolean(sw));
 
   const pageErrors = {};
-  const open = async (label, url, settle = 6000) => {
+  const open = async (label, url) => {
     const page = await ctx.newPage();
     pageErrors[label] = [];
     page.on("pageerror", (e) => pageErrors[label].push(e.message));
     page.on("console", (m) => m.type() === "error" && pageErrors[label].push(m.text()));
     await page.goto(url, { waitUntil: "load", timeout: 60000 });
-    await page.waitForTimeout(settle);
     return page;
   };
-  const count = (page, selector) => page.locator(selector).count();
+  // Waits until at least one match exists (or the timeout passes), then returns the match count.
+  const count = async (locator) => {
+    await locator.first().waitFor({ state: "attached", timeout: TIMEOUT }).catch(() => {});
+    return locator.count();
+  };
 
   // 2. Options page. Saves a Web_Map_as_JSON default, which the print page check relies on.
-  const optionsPage = await open("options page", `chrome-extension://${extId}/src/options/options.html`, 1500);
-  record("options page: inputs rendered", (await count(optionsPage, "input")) > 5);
+  const optionsPage = await open("options page", `chrome-extension://${extId}/src/options/options.html`);
+  record("options page: inputs rendered", (await count(optionsPage.locator("input"))) > 5);
   await optionsPage.locator("#mapimagewidth").fill("321");
   await optionsPage.locator("#defaultwebmapasjson").fill("{\"operationalLayers\":[]}");
   await optionsPage.locator("#save").click();
-  await optionsPage.waitForTimeout(500);
-  const saved = await optionsPage.evaluate(() => new Promise((res) => chrome.storage.sync.get(["mapImageWidth", "defaultWebMapAsJSON"], res)));
-  record("options page: save writes chrome.storage", saved.mapImageWidth === 321 && saved.defaultWebMapAsJSON.length > 0);
+  const saved = await poll(
+    () => optionsPage.evaluate(() => new Promise((res) => chrome.storage.sync.get(["mapImageWidth", "defaultWebMapAsJSON"], res))),
+    (items) => items.mapImageWidth === 321 && Boolean(items.defaultWebMapAsJSON));
+  record("options page: save writes chrome.storage", saved.mapImageWidth === 321 && Boolean(saved.defaultWebMapAsJSON));
 
   // 3. Content scripts on each page type.
-  const other = await open("non-REST page", "https://example.com/", 1500);
+  const other = await open("non-REST page", "https://example.com/");
   const root = await open("services root", BASE);
-  record("services root: status icon injected", (await count(root, ".status-icon")) > 0);
-  const srLinks = await count(root, "a[href*='spatialreference.org']");
+  record("services root: status icon injected", (await count(root.locator(".status-icon"))) > 0);
+  const srLinks = await count(root.locator("a[href*='spatialreference.org']"));
   record("services root: spatial reference links rendered", srLinks > 0, `${srLinks} links`);
 
-  const mapServer = await open("MapServer", `${BASE}/USA/MapServer`, 10000);
-  const blocks = await count(mapServer, ".datablock");
+  const mapServer = await open("MapServer", `${BASE}/USA/MapServer`);
+  const blocks = await count(mapServer.locator(".datablock"));
   record("MapServer: metadata blocks rendered", blocks > 0, `${blocks} blocks`);
 
-  const layer = await open("layer", `${BASE}/USA/MapServer/0`, 10000);
-  const fieldCounts = await layer.getByText("Features with values:").count();
+  const layer = await open("layer", `${BASE}/USA/MapServer/0`);
+  const fieldCounts = await count(layer.getByText("Features with values:"));
   record("layer page: field value counts rendered", fieldCounts > 0, `${fieldCounts} fields`);
 
-  const query = await open("query page", `${BASE}/USA/MapServer/0/query`, 8000);
-  record("query page: side panel rendered", (await count(query, ".sidepanel")) > 0);
-  const sqlButtons = await count(query, "button.sql");
+  const query = await open("query page", `${BASE}/USA/MapServer/0/query`);
+  record("query page: side panel rendered", (await count(query.locator(".sidepanel"))) > 0);
+  const sqlButtons = await count(query.locator("button.sql"));
   record("query page: SQL buttons rendered", sqlButtons > 0, `${sqlButtons} buttons`);
 
-  const print = await open("print page", `${BASE}/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task/execute`, 8000);
-  const selects = await count(print, "select");
+  const print = await open("print page", `${BASE}/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task/execute`);
+  const selects = await count(print.locator("select"));
   record("print page: choice lists swapped in", selects > 0, `${selects} selects`);
-  const webMapLength = await print.evaluate(() => document.querySelector("textarea")?.value.length ?? -1);
-  record("print page: Web_Map_as_JSON pre-filled", webMapLength > 0);
+  // printTask.js fills the field named Web_Map_as_JSON (a textarea or an input) with the saved default.
+  const webMapField = print.locator("[name='Web_Map_as_JSON']").first();
+  const webMapValue = await poll(() => webMapField.inputValue().catch(() => null), (v) => v === saved.defaultWebMapAsJSON);
+  record("print page: Web_Map_as_JSON pre-filled with the saved default", webMapValue === saved.defaultWebMapAsJSON);
 
   // 4. Toolbar action is enabled on REST pages only.
-  const states = await optionsPage.evaluate(async () => {
+  const expectedState = (url) => REST_PAGE.test(url.split(/[?#]/)[0]);
+  const states = await poll(() => optionsPage.evaluate(async () => {
     const tabs = (await chrome.tabs.query({})).filter((t) => /^https?:/.test(t.url));
     return Promise.all(tabs.map(async (t) => ({ url: t.url, enabled: await chrome.action.isEnabled(t.id) })));
-  });
+  }), (list) => list.length >= 6 && list.every((t) => t.enabled === expectedState(t.url)));
   record("action state read for every web tab", states.length >= 6, `${states.length} tabs`);
   for (const { url, enabled } of states) {
-    const expected = REST_PAGE.test(url.split(/[?#]/)[0]);
+    const expected = expectedState(url);
     record(`action ${expected ? "enabled" : "disabled"}: ${url}`, enabled === expected);
   }
 
   // Same tab: REST page -> non-REST page -> Back (restored from the back/forward cache).
-  const nav = await open("navigation tab", `${BASE}/USA/MapServer`, 2000);
-  const markTab = () => nav.evaluate(() => { document.title = "__nav__"; });
-  const navEnabled = () => optionsPage.evaluate(async () => {
-    const [t] = (await chrome.tabs.query({})).filter((x) => x.title === "__nav__");
-    return t ? chrome.action.isEnabled(t.id) : null;
-  });
-  await markTab();
-  record("navigation: enabled on REST page", (await navEnabled()) === true);
+  const nav = await open("navigation tab", `${BASE}/USA/MapServer`);
+  // Re-mark the tab on every poll: navigation resets document.title.
+  const navEnabled = async () => {
+    await nav.evaluate(() => { document.title = "__nav__"; }).catch(() => {});
+    return optionsPage.evaluate(async () => {
+      const [t] = (await chrome.tabs.query({})).filter((x) => x.title === "__nav__");
+      return t ? chrome.action.isEnabled(t.id) : null;
+    });
+  };
+  record("navigation: enabled on REST page", (await poll(navEnabled, (v) => v === true)) === true);
   await nav.goto("https://example.com/", { waitUntil: "load" });
-  await nav.waitForTimeout(1000);
-  await markTab();
-  record("navigation: disabled after leaving REST page", (await navEnabled()) === false);
+  record("navigation: disabled after leaving REST page", (await poll(navEnabled, (v) => v === false)) === false);
   await nav.goBack({ waitUntil: "load" });
-  await nav.waitForTimeout(1500);
-  await markTab();
-  record("navigation: enabled again after Back", (await navEnabled()) === true);
+  record("navigation: enabled again after Back", (await poll(navEnabled, (v) => v === true)) === true);
 
   // The popup really opens on a REST tab, and Chrome refuses it elsewhere.
   const openPopupOn = async (page) => {
     await page.bringToFront();
-    await page.waitForTimeout(500);
     return optionsPage.evaluate(async () => {
       const [w] = await chrome.windows.getAll({ windowTypes: ["normal"] });
       await chrome.windows.update(w.id, { focused: true });
-      await new Promise((res) => setTimeout(res, 300));
       try {
         await chrome.action.openPopup({ windowId: w.id });
         return "opened";
@@ -149,15 +165,7 @@ try {
     });
   };
   // Window focus can lag behind bringToFront (and after a popup closes), so retry "inactive window" results.
-  const tryPopup = async (page) => {
-    let result;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      result = await openPopupOn(page);
-      if (!/inactive window/.test(result)) break;
-      await page.waitForTimeout(1000);
-    }
-    return result;
-  };
+  const tryPopup = (page) => poll(() => openPopupOn(page), (result) => !/inactive window/.test(result), 10000);
   const restPopup = await tryPopup(root);
   record("popup opens on REST tab", restPopup === "opened", restPopup);
   // Close the open popup; it holds window focus, which would block the next openPopup call.
@@ -165,13 +173,12 @@ try {
   for (const t of targetInfos.filter((x) => x.url.includes("page_action.html"))) {
     await cdp.send("Target.closeTarget", { targetId: t.targetId });
   }
-  await root.waitForTimeout(500);
   const otherPopup = await tryPopup(other);
   record("popup refused on non-REST tab", /does not have a popup/.test(otherPopup), otherPopup);
 
   // 5. Popup page.
-  const popup = await open("popup", `chrome-extension://${extId}/src/page_action/page_action.html`, 1500);
-  record("popup: renders", (await count(popup, "input, button")) > 0);
+  const popup = await open("popup", `chrome-extension://${extId}/src/page_action/page_action.html`);
+  record("popup: renders", (await count(popup.locator("input, button"))) > 0);
 
   // 6. No errors.
   for (const [label, errors] of Object.entries(pageErrors)) {
