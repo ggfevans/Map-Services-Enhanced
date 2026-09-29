@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A Chrome extension (Manifest V3, Chromium browsers only) that adds diagnostic and query tools to the HTML pages served by ArcGIS Server REST endpoints (`.../rest/services/...`). It packages the bookmarklets from [ESRI REST Diagnostics](https://github.com/raykendo/ESRI_REST_Diagnostics) into one tool. The code is plain vanilla JS with no framework, no bundler, no runtime dependencies, and no test suite.
+A Chrome extension (Manifest V3, Chromium browsers only) that adds diagnostic and query tools to the HTML pages served by ArcGIS Server REST endpoints (`.../rest/services/...`). It packages the bookmarklets from [ESRI REST Diagnostics](https://github.com/raykendo/ESRI_REST_Diagnostics) into one tool. The code is plain vanilla JS with no framework, no bundler, and no runtime dependencies.
 
 ## Commands
 
@@ -14,7 +14,7 @@ Requires Node 20.19+. Run `npm install` first.
 - `npm run build`: lint, then zip `src/` into `build/map-services-enhanced-<version>.zip`. The build fails if the versions in `package.json` and `src/manifest.json` differ, so bump both together.
 - To try the extension, open `chrome://extensions`, turn on Developer mode, and use "Load unpacked" on `src/`. Branded Chrome ignores `--load-extension`, so automated browser tests need Playwright's bundled Chromium.
 
-There is no automated test suite yet.
+- `npm run test:smoke`: loads the unpacked extension into the installed Google Chrome and checks every feature against Esri's public sample server (override with `MSE_TEST_SERVER`). It opens a visible Chrome window for about a minute, so don't run it while the user is working. Branded Chrome ignores `--load-extension`, so `tests/smoke.js` loads the extension over CDP (`Extensions.loadUnpacked`). That needs `--enable-unsafe-extension-debugging`, Developer mode in the throwaway profile, and `ignoreDefaultArgs: ["--disable-extensions"]`. The popup open/refuse checks occasionally fail because of window-focus timing.
 
 ## Layout
 

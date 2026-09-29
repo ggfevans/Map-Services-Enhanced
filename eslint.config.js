@@ -19,11 +19,21 @@ export default [
     }
   },
   {
-    files: ["*.js", "scripts/**/*.js"],
+    files: ["*.js", "scripts/**/*.js", "tests/**/*.js"],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "module",
       globals: globals.node
+    }
+  },
+  {
+    // Node scripts whose page.evaluate callbacks run in the browser or an extension page.
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.webextensions
+      }
     }
   },
   {

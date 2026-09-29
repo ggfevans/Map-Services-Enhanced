@@ -20,7 +20,8 @@
   },
   "scripts": {
     "lint": "eslint .",
-    "build": "npm run lint && node scripts/build.js"
+    "build": "npm run lint && node scripts/build.js",
+    "test:smoke": "node tests/smoke.js"
   },
   "license": "MIT",
   "devDependencies": {
@@ -28,6 +29,7 @@
     "@stylistic/eslint-plugin": "^5.10.0",
     "archiver": "^8.0.0",
     "eslint": "^10.11.0",
-    "globals": "^17.12.0"
+    "globals": "^17.12.0",
+    "playwright": "^1.63.0"
   }
 }
