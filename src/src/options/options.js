@@ -24,11 +24,11 @@
     });
   };
 
-// Restores select box and checkbox state using the preferences
-// stored in chrome.storage.
+  // Restores select box and checkbox state using the preferences
+  // stored in chrome.storage.
   const restore_options = () =>{
 
-  // Use default value color = "red" and likesColor = true.
+    // Use default value color = "red" and likesColor = true.
     chrome.storage.sync.get({
       autoMetadata: true,
       autoFeatureCounts: true,
@@ -43,7 +43,7 @@
     }, (items) => {
       const metaDataCheck = document.getElementById("metadata"),
         featureCountsCheck = document.getElementById("featurecounts");
-    // update form items
+      // update form items
       metaDataCheck.checked = items.autoMetadata;
       featureCountsCheck.checked = items.autoFeatureCounts;
       document.getElementById("fieldcounts").checked = items.autoFieldCounts;
@@ -55,7 +55,7 @@
       document.getElementById("mapimagewidth").value = items.mapImageWidth;
       document.getElementById("mapimageheight").value = items.mapImageHeight;
 
-    // update auto meta data behavior with update feature counts.
+      // update auto meta data behavior with update feature counts.
       if (!items.autoMetadata) {
         featureCountsCheck.setAttribute("disabled", "disabled");
       }

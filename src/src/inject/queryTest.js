@@ -3,11 +3,6 @@
   
   
 
-   // Status effects
-  const STATUS = {
-    LOADING: "loading-start",
-    LOAD_COMPLETE: "loading-complete"
-  };
 
   /**
    * requests data from a URL and returns it in JSON format
@@ -164,7 +159,7 @@
     }
 
     formFields.forEach((item) => {
-      if (formData.hasOwnProperty(item.name)) {
+      if (Object.hasOwn(formData, item.name)) {
         if (item.type && item.type === "radio" && formData[item.name] === item.value) {
           item.checked = true;
         } else {
@@ -182,12 +177,12 @@
       const submitButtons = document.querySelectorAll("input[type='submit']");
       let submitButton;
       switch(item.queryHelperSelectAll) {
-      case "get":
-        submitButton = submitButtons[0];
-        break;
-      case "post":
-        submitButton = submitButtons[1];
-        break;
+        case "get":
+          submitButton = submitButtons[0];
+          break;
+        case "post":
+          submitButton = submitButtons[1];
+          break;
       }
 
       if (submitButton) {
@@ -234,7 +229,7 @@
         if (!(statContent instanceof Array)) {
           throw "Not a valid array";
         }
-      } catch(err) {
+      } catch {
         statContent = [];
       }
     }
@@ -284,7 +279,7 @@
    */
   function addSqlControl (parentNode) {
     const btns = loadElement("DIV", {"class": "buttonbox"});
-     //[" = ", " &lt;&gt; ", " LIKE ", " &gt; ", " &gt;= ", " AND ", " &lt; ", " &lt;= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "&#39;&#39;", " IN ", ", " ].forEach(function (txt) {
+    //[" = ", " &lt;&gt; ", " LIKE ", " &gt; ", " &gt;= ", " AND ", " &lt; ", " &lt;= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "&#39;&#39;", " IN ", ", " ].forEach(function (txt) {
     [" = ", " <> ", " LIKE ", " > ", " >= ", " AND ", " < ", " <= ", " OR ", "_", "%", "()", "NOT ", " IS ", "*", "''", " IN ", ", ", "NULL" ].forEach(function (txt) {
       btns.appendChild(loadElement("button", {
         "class": "sql",
@@ -296,7 +291,7 @@
   }
 
 
- /**
+  /**
    * Represents the SidePanel
    * @class SidePanel
    * @param {string} title title to add to the sidepanel
@@ -347,7 +342,7 @@
     }
   }
 
-   /**
+  /**
    * Field Selector
    */
   class FieldSelector {
@@ -477,7 +472,7 @@
       // loading of values
       notifyLoading(true);
       cleanElement(this.valueList);
-      this.valueList.appendChild(loadElement("option", {"value": ""}, "Loading..."))
+      this.valueList.appendChild(loadElement("option", {"value": ""}, "Loading..."));
       this.valueList.setAttribute("disabled", "disabled");
       // stop additional clicks on fieldSelect from subsequent calls
       this.fieldSelect.setAttribute("disabled", "disabled");
@@ -557,18 +552,17 @@
     }); 
   };
 
-  chrome.extension.sendMessage({}, function(/*response*/) {
-    const readyStateCheckInterval = setInterval(function() {
-      let url;
-      if (document.readyState === "complete") {
-        clearInterval(readyStateCheckInterval);
+  const onPageLoaded = () => {
+    // collect the links on the web page to collect information about the content they link to.
+    const url = window.location.href.split("?")[0];
 
-        // collect the links on the web page to collect information about the content they link to.
-        url = window.location.href.split("?")[0];
+    // handling query page with quick query helpers
+    queryHelper(url.replace(/\/query\/?$/i, ""));
+  };
 
-        // handling query page with quick query helpers
-        queryHelper(url.replace(/\/query\/?$/i, ""));        
-      }
-    }, 10);
-  });
+  if (document.readyState === "complete") {
+    onPageLoaded();
+  } else {
+    window.addEventListener("load", onPageLoaded);
+  }
 }

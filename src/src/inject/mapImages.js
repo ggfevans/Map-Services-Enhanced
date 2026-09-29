@@ -1,11 +1,6 @@
 {
   const IMAGE_LOOKUP = {};
   const NO_IMAGE_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
-    // Status effects
-  const STATUS = {
-    LOADING: "loading-start",
-    LOAD_COMPLETE: "loading-complete"
-  };
   const WIDTH_HEIGHT = {
     width: 300,
     height: 200
@@ -222,19 +217,20 @@
     }
   };
 
-  chrome.extension.sendMessage({}, (/*response*/) => {    
-    let readyStateCheckInterval = setInterval(() => {
-      if (document.readyState === "complete") {
-        clearInterval(readyStateCheckInterval);
-        // collect the links on the web page to collect information about the content they link to.
-        chrome.storage.sync.get({
-          showMapImages: true
-        }, (items) => {
-          if (items.showMapImages) {
-            setup();
-          }
-        }); 
+  const onPageLoaded = () => {
+    // collect the links on the web page to collect information about the content they link to.
+    chrome.storage.sync.get({
+      showMapImages: true
+    }, (items) => {
+      if (items.showMapImages) {
+        setup();
       }
-    }, 10);
-  });
+    });
+  };
+
+  if (document.readyState === "complete") {
+    onPageLoaded();
+  } else {
+    window.addEventListener("load", onPageLoaded);
+  }
 }

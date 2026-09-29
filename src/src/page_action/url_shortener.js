@@ -23,8 +23,8 @@
       returnGeometry: "true"
     };
     // replace empty query parameter values
-    while (/(\?|\&)\w+\=(\&|$)/g.test(url)) {
-      url = url.replace(/(\?|\&)\w+\=(\&|$)/g, "$1");
+    while (/(\?|&)\w+=(&|$)/g.test(url)) {
+      url = url.replace(/(\?|&)\w+=(&|$)/g, "$1");
     }
 
     // replace default values:
@@ -36,12 +36,12 @@
     }
 
     // replace multiple ampersand(&) values
-    while (/\&{2,}/g.test(url)) {
-      url = url.replace(/\&+/g, "&");
+    while (/&{2,}/g.test(url)) {
+      url = url.replace(/&+/g, "&");
     }
     // replace ampersand(&) at end of the string with a blank
-    while (/\&$/.test(url)) {
-      url = url.replace(/\&$/, "");
+    while (/&$/.test(url)) {
+      url = url.replace(/&$/, "");
     }
 
     return url;

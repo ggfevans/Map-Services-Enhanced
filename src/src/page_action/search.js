@@ -7,7 +7,7 @@
     resultList = d.getElementById("searchresults");
   let locs, hits;
 		
-	/**
+  /**
    * requests data from a URL and returns it in JSON format
    * @function ajax
    * @param {string} u - URL to send the requests
@@ -38,7 +38,7 @@
     }
   };
 
-   /**
+  /**
    * Creates an HTML element.
    * @function loadElement
    * @param {string} tag - HTML tag name that you want to create.
@@ -65,7 +65,7 @@
 	 * @param {object} data - JSON object.
    */
   const getFinalVal = (fields, data) => {
-    let result = data.hasOwnProperty(fields[0]) ? data[fields[0]] : null;
+    let result = Object.hasOwn(data, fields[0]) ? data[fields[0]] : null;
     if (result != null && fields.length > 1) {
       if (result instanceof Array) {
         return result.map((item) => getFinalVal(fields.slice(1), item));
@@ -92,7 +92,7 @@
     link.appendChild(d.createTextNode(url.replace(/^\S*\/rest\/services\//i, ".")));
     link.appendChild(d.createElement("br"));
     link.appendChild(loadElement("b", {}, `${field}: `));
-    link.appendChild(d.createTextNode(result))
+    link.appendChild(d.createTextNode(result));
     li.appendChild(link);
     return li;
   };
@@ -187,7 +187,7 @@
     });
   };
 
-	// function called on mouse click, parses searches, sets up tests, and queries the current REST service.
+  // function called on mouse click, parses searches, sets up tests, and queries the current REST service.
   btn.addEventListener("click", () => {
     let searchFor, myTest;
     if (txt.value) {
@@ -213,7 +213,7 @@
         active: true, 
         currentWindow: true
       }, (tabs) => {
-        tabs.forEach((tab) => queryMe([tab.url.replace(/\?[\B]*$/, "")], myTest));
+        tabs.forEach((tab) => queryMe([tab.url.replace(/\?.*$/, "")], myTest));
       });
     } else { 
       alert("Please enter a value"); 

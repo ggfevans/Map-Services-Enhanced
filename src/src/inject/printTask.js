@@ -57,12 +57,12 @@
    */
   const hideInput = (node) => {
     let type = node.type || "";
-    switch (node.tag) {
-    case "INPUT":
-      node.setAttribute("type", "hidden");
-      break;
-    default:
-      node.className = (node.className ? " " : "") + "hidden";
+    switch (node.tagName) {
+      case "INPUT":
+        node.setAttribute("type", "hidden");
+        break;
+      default:
+        node.className += (node.className ? " " : "") + "hidden";
     }
     return type;
   };
@@ -73,12 +73,12 @@
    * @param {string} type - original type of the node 
    */
   const showInput = (node, type) => {
-    switch (node.tag) {
-    case "INPUT":
-      node.setAttribute("type", type);
-      break;
-    default:
-      node.className = node.className.replace(/\s?hidden/ig, "");
+    switch (node.tagName) {
+      case "INPUT":
+        node.setAttribute("type", type);
+        break;
+      default:
+        node.className = node.className.replace(/\s?hidden/ig, "");
     }
   };
 
@@ -103,7 +103,7 @@
       nodesByName.forEach((nodeToReplace) => {
         const select = loadElement("select", {});
         let nodeType;
-          //"name": param.name
+        //"name": param.name
           
         // generate options
         param.choiceList.forEach((choice) => {
